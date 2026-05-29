@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import numpy as np
 import mlflow
 import mlflow.sklearn
 import dagshub
@@ -25,6 +24,8 @@ dagshub.init(
     repo_name='Eksperimen_SML_ChelsaYogaPermadany',
     mlflow=True
 )
+
+mlflow.set_experiment("Raisin_CI_Pipeline")
 
 # ============================================================
 # LOAD DATA
@@ -112,40 +113,27 @@ with open("artifacts/classification_report.txt", "w") as f:
     f.write(report)
 
 # ============================================================
-# MLFLOW LOGGING
-# — Gunakan active run dari MLflow Project jika ada,
-#   jika tidak ada buat run baru
+# MLFLOW LOGGING — log langsung tanpa start_run
+# MLflow Project sudah handle run context-nya
 # ============================================================
-mlflow.set_experiment("Raisin_CI_Pipeline")
+mlflow.log_params(best_params)
 
-active_run = mlflow.active_run()
-if active_run:
-    # Pakai run yang sudah dibuat oleh MLflow Project
-    run_context = mlflow.start_run(run_id=active_run.info.run_id, nested=True)
-else:
-    # Buat run baru jika dijalankan secara manual
-    run_context = mlflow.start_run(run_name="RandomForest_CI")
+mlflow.log_metric("accuracy", accuracy)
+mlflow.log_metric("precision", precision)
+mlflow.log_metric("recall", recall)
+mlflow.log_metric("f1_score", f1)
+mlflow.log_metric("roc_auc", roc_auc)
 
-with run_context:
-    mlflow.log_params(best_params)
+mlflow.sklearn.log_model(best_model, "random_forest_tuned")
 
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.log_metric("precision", precision)
-    mlflow.log_metric("recall", recall)
-    mlflow.log_metric("f1_score", f1)
-    mlflow.log_metric("roc_auc", roc_auc)
+mlflow.log_artifact("artifacts/confusion_matrix.png")
+mlflow.log_artifact("artifacts/roc_curve.png")
+mlflow.log_artifact("artifacts/feature_importance.png")
+mlflow.log_artifact("artifacts/classification_report.txt")
 
-    mlflow.sklearn.log_model(best_model, "random_forest_tuned")
-
-    mlflow.log_artifact("artifacts/confusion_matrix.png")
-    mlflow.log_artifact("artifacts/roc_curve.png")
-    mlflow.log_artifact("artifacts/feature_importance.png")
-    mlflow.log_artifact("artifacts/classification_report.txt")
-
-    print(f"\n✅ Training selesai!")
-    print(f"   Accuracy : {accuracy:.4f}")
-    print(f"   Precision: {precision:.4f}")
-    print(f"   Recall   : {recall:.4f}")
-    print(f"   F1 Score : {f1:.4f}")
-    print(f"   ROC AUC  : {roc_auc:.4f}")
-    print(f"   Run ID   : {mlflow.active_run().info.run_id}")
+print(f"\n✅ Training selesai!")
+print(f"   Accuracy : {accuracy:.4f}")
+print(f"   Precision: {precision:.4f}")
+print(f"   Recall   : {recall:.4f}")
+print(f"   F1 Score : {f1:.4f}")
+print(f"   ROC AUC  : {roc_auc:.4f}")
