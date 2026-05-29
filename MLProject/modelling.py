@@ -17,6 +17,11 @@ from sklearn.metrics import (
 )
 
 # ============================================================
+# HAPUS ENV VAR DARI MLFLOW PROJECT — agar tidak bentrok
+# ============================================================
+os.environ.pop("MLFLOW_RUN_ID", None)
+
+# ============================================================
 # DAGSHUB & MLFLOW SETUP
 # ============================================================
 dagshub.init(
@@ -113,27 +118,28 @@ with open("artifacts/classification_report.txt", "w") as f:
     f.write(report)
 
 # ============================================================
-# MLFLOW LOGGING — log langsung tanpa start_run
-# MLflow Project sudah handle run context-nya
+# MLFLOW LOGGING — buat run baru di DagsHub
 # ============================================================
-mlflow.log_params(best_params)
+with mlflow.start_run(run_name="RandomForest_CI"):
+    mlflow.log_params(best_params)
 
-mlflow.log_metric("accuracy", accuracy)
-mlflow.log_metric("precision", precision)
-mlflow.log_metric("recall", recall)
-mlflow.log_metric("f1_score", f1)
-mlflow.log_metric("roc_auc", roc_auc)
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_metric("precision", precision)
+    mlflow.log_metric("recall", recall)
+    mlflow.log_metric("f1_score", f1)
+    mlflow.log_metric("roc_auc", roc_auc)
 
-mlflow.sklearn.log_model(best_model, "random_forest_tuned")
+    mlflow.sklearn.log_model(best_model, "random_forest_tuned")
 
-mlflow.log_artifact("artifacts/confusion_matrix.png")
-mlflow.log_artifact("artifacts/roc_curve.png")
-mlflow.log_artifact("artifacts/feature_importance.png")
-mlflow.log_artifact("artifacts/classification_report.txt")
+    mlflow.log_artifact("artifacts/confusion_matrix.png")
+    mlflow.log_artifact("artifacts/roc_curve.png")
+    mlflow.log_artifact("artifacts/feature_importance.png")
+    mlflow.log_artifact("artifacts/classification_report.txt")
 
-print(f"\n✅ Training selesai!")
-print(f"   Accuracy : {accuracy:.4f}")
-print(f"   Precision: {precision:.4f}")
-print(f"   Recall   : {recall:.4f}")
-print(f"   F1 Score : {f1:.4f}")
-print(f"   ROC AUC  : {roc_auc:.4f}")
+    print(f"\n✅ Training selesai!")
+    print(f"   Accuracy : {accuracy:.4f}")
+    print(f"   Precision: {precision:.4f}")
+    print(f"   Recall   : {recall:.4f}")
+    print(f"   F1 Score : {f1:.4f}")
+    print(f"   ROC AUC  : {roc_auc:.4f}")
+    print(f"   Run ID   : {mlflow.active_run().info.run_id}")
