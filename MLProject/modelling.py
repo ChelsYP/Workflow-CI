@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import mlflow
 import mlflow.sklearn
-import dagshub
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -17,18 +16,20 @@ from sklearn.metrics import (
 )
 
 # ============================================================
-# HAPUS ENV VAR DARI MLFLOW PROJECT — agar tidak bentrok
+# MLFLOW SETUP — simpan lokal saja saat di CI
+# DagsHub hanya dipakai saat run manual/lokal
 # ============================================================
 os.environ.pop("MLFLOW_RUN_ID", None)
 
-# ============================================================
-# DAGSHUB & MLFLOW SETUP
-# ============================================================
-dagshub.init(
-    repo_owner='ChelsYP',
-    repo_name='Eksperimen_SML_ChelsaYogaPermadany',
-    mlflow=True
-)
+IS_CI = os.environ.get("GITHUB_ACTIONS") == "true"
+
+if not IS_CI:
+    import dagshub
+    dagshub.init(
+        repo_owner='ChelsYP',
+        repo_name='Eksperimen_SML_ChelsaYogaPermadany',
+        mlflow=True
+    )
 
 mlflow.set_experiment("Raisin_CI_Pipeline")
 
@@ -118,28 +119,37 @@ with open("artifacts/classification_report.txt", "w") as f:
     f.write(report)
 
 # ============================================================
-# MLFLOW LOGGING — buat run baru di DagsHub
+# MLFLOW LOGGING
 # ============================================================
 with mlflow.start_run(run_name="RandomForest_CI"):
     mlflow.log_params(best_params)
-
     mlflow.log_metric("accuracy", accuracy)
     mlflow.log_metric("precision", precision)
     mlflow.log_metric("recall", recall)
     mlflow.log_metric("f1_score", f1)
     mlflow.log_metric("roc_auc", roc_auc)
 
-    mlflow.sklearn.log_model(best_model, "random_forest_tuned")
+    mlflow.sklearn.log_model(
+        best_model,
+        "random_forest_tuned",
+        registered_model_name="random_forest_tuned"  # daftarkan ke model registry
+    )
 
     mlflow.log_artifact("artifacts/confusion_matrix.png")
     mlflow.log_artifact("artifacts/roc_curve.png")
     mlflow.log_artifact("artifacts/feature_importance.png")
     mlflow.log_artifact("artifacts/classification_report.txt")
 
+    run_id = mlflow.active_run().info.run_id
     print(f"\n✅ Training selesai!")
     print(f"   Accuracy : {accuracy:.4f}")
     print(f"   Precision: {precision:.4f}")
     print(f"   Recall   : {recall:.4f}")
     print(f"   F1 Score : {f1:.4f}")
     print(f"   ROC AUC  : {roc_auc:.4f}")
-    print(f"   Run ID   : {mlflow.active_run().info.run_id}")
+    print(f"   Run ID   : {run_id}")
+
+# Simpan run_id ke file untuk dipakai Docker build
+with open("artifacts/run_id.txt", "w") as f:
+    f.write(run_id)
+print(f"   Run ID disimpan ke artifacts/run_id.txt")
