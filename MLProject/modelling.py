@@ -112,12 +112,21 @@ with open("artifacts/classification_report.txt", "w") as f:
     f.write(report)
 
 # ============================================================
-# MLFLOW MANUAL LOGGING
+# MLFLOW LOGGING
+# — Gunakan active run dari MLflow Project jika ada,
+#   jika tidak ada buat run baru
 # ============================================================
 mlflow.set_experiment("Raisin_CI_Pipeline")
 
-with mlflow.start_run(run_name="RandomForest_CI"):
+active_run = mlflow.active_run()
+if active_run:
+    # Pakai run yang sudah dibuat oleh MLflow Project
+    run_context = mlflow.start_run(run_id=active_run.info.run_id, nested=True)
+else:
+    # Buat run baru jika dijalankan secara manual
+    run_context = mlflow.start_run(run_name="RandomForest_CI")
 
+with run_context:
     mlflow.log_params(best_params)
 
     mlflow.log_metric("accuracy", accuracy)
