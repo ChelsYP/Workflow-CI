@@ -41,12 +41,10 @@ jobs:
           name: model-artifacts
           path: MLProject/artifacts/
 
-      # Commit mlruns + artifacts ke repo agar bisa dipakai Docker build
       - name: Commit mlruns and Artifacts to Repo
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          # Paksa track mlruns meski ada di .gitignore
           git add -f MLProject/mlruns/
           git add MLProject/artifacts/ || true
           git diff --staged --quiet || git commit -m "auto: update mlruns and artifacts [skip ci]"
@@ -62,15 +60,18 @@ jobs:
 
       - name: Build Docker Image with MLflow
         run: |
-          RUN_ID=$(cat MLProject/artifacts/run_id.txt)
-          MODEL_URI="MLProject/mlruns/1/${RUN_ID}/artifacts/random_forest_tuned"
-          echo "Building Docker image from: $MODEL_URI"
-          
-          # Verifikasi path ada
-          ls -la MLProject/mlruns/1/${RUN_ID}/artifacts/ || echo "Artifacts folder not found!"
-          
+          # Cari path model secara dinamis — tidak bergantung pada run ID
+          MODEL_PATH=$(find MLProject/mlruns -type d -name "random_forest_tuned" | head -1)
+          echo "Model ditemukan di: $MODEL_PATH"
+
+          if [ -z "$MODEL_PATH" ]; then
+            echo "❌ Model tidak ditemukan di mlruns!"
+            find MLProject/mlruns -type f | head -20
+            exit 1
+          fi
+
           mlflow models build-docker \
-            --model-uri "$MODEL_URI" \
+            --model-uri "$MODEL_PATH" \
             --name "chelsy2/raisin-classifier" \
             --env-manager=local
 
