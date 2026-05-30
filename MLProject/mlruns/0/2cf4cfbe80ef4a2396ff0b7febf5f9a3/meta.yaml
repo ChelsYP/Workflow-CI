@@ -1,0 +1,15 @@
+artifact_uri: file:///home/runner/work/Workflow-CI/Workflow-CI/MLProject/mlruns/0/2cf4cfbe80ef4a2396ff0b7febf5f9a3/artifacts
+end_time: 1780105828349
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 2cf4cfbe80ef4a2396ff0b7febf5f9a3
+run_name: gaudy-skunk-332
+run_uuid: 2cf4cfbe80ef4a2396ff0b7febf5f9a3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780105810950
+status: 3
+tags: []
+user_id: runner
