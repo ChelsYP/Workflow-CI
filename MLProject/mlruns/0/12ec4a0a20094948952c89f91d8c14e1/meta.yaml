@@ -1,0 +1,15 @@
+artifact_uri: file:///home/runner/work/Workflow-CI/Workflow-CI/MLProject/mlruns/0/12ec4a0a20094948952c89f91d8c14e1/artifacts
+end_time: 1780105579172
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 12ec4a0a20094948952c89f91d8c14e1
+run_name: nervous-penguin-87
+run_uuid: 12ec4a0a20094948952c89f91d8c14e1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780105561805
+status: 3
+tags: []
+user_id: runner
